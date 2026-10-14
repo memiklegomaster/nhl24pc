@@ -467,6 +467,16 @@ std::tuple<ImageId, int, int> TextureCache::ResolveOverlap(const ImageInfo& imag
             return {merged_image_id, -1, -1};
         }
 
+        // Same surface (format, size, pitch, tiling, mips/layers all match) described with a
+        // larger guest footprint: grow the cached image instead of aborting.
+        if (image_info.type == cache_image.info.type &&
+            image_info.pixel_format == cache_image.info.pixel_format &&
+            image_info.resources == cache_image.info.resources &&
+            image_info.size == cache_image.info.size &&
+            image_info.pitch == cache_image.info.pitch) {
+            return {ExpandImage(image_info, cache_image_id), -1, -1};
+        }
+
         // Enhanced debug logging for unreachable case
         // Calculate expected size based on format and dimensions
         u64 expected_size =
